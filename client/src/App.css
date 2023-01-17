@@ -1,0 +1,17 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html,
+body {
+  font-family: Roboto, sans-serif;
+}
+.bold {
+  font-weight: bold !important;
+}
+.App {
+  color: #1b1b32;
+  background-color: #fff;
+  height: 100vh;
+}
