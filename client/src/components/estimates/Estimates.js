@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { AppContext } from "../../app/Provider";
 import Header from "../utilities/Header";
 import Navigator from "../utilities/Navigator";
 import "./Estimates.css";
@@ -6,18 +7,23 @@ import floating from "../../assets/floating-btn.svg";
 import { Link } from "react-router-dom";
 
 function Estimates() {
-  const [estimates, setEstimates] = useState([]);
+  const [token, setToken] = useContext(AppContext); //Global state
 
-  // Consumo de api (Aqui es donde conectamos el cliente con el server)
-  const loadEstimates = () => {
-    fetch("http://127.0.0.1:5005/api/estimates")
+  const [estimates, setEstimates] = useState([]);
+  const [userAuth, setUserAuth] = useState(localStorage.getItem("ui"));
+
+  //Consumo de api
+  useEffect(() => {
+    fetch(`http://127.0.0.1:5005/api/estimates/u/${userAuth}`)
       .then((response) => response.json())
       .then((data) => setEstimates(data))
       .catch((error) => {
         console.log(error);
       });
-  };
-  loadEstimates();
+    console.log(token);
+    // console.log(token.user);
+    // console.log(state.user);
+  }, []);
 
   //Flag of dataEmpty?
   const dataEmpty = estimates.length;
@@ -33,7 +39,7 @@ function Estimates() {
     <>
       <Header />
       <div className="main">
-        <h1 className="title">Estimates</h1>
+        <h1 className="title">Estimates {}</h1>
 
         <div className="btn-filters">
           <div className="selector-all">All</div>
@@ -42,7 +48,7 @@ function Estimates() {
         </div>
         <div className="total">
           <div className="text-total">Total: </div>
-          <div className="quantity-total"> $11,122.00</div>
+          <div className="quantity-total"> $880.00</div>
         </div>
         <p className="month-year">Nov 2022</p>
         <div className="list-estimates space-bottom-data">
@@ -50,7 +56,7 @@ function Estimates() {
           {estimates.map((eachOne) => {
             return (
               <Link
-                key={eachOne.id}
+                key={eachOne._id}
                 className="link"
                 to={`/estimates/${eachOne._id}`}
               >
@@ -59,10 +65,10 @@ function Estimates() {
                     <h6 className="">
                       # {eachOne.folio}: {eachOne.name_client}
                     </h6>
-                    <h6 className="bold">$ {eachOne.base_rate}</h6>
+                    <h6 className="bold">$ {eachOne.total}</h6>
                   </div>
                   <div className="footer-estimate">
-                    <h6 className="date">{eachOne.date}</h6>
+                    <h6 className="date">{eachOne.job_descrip}</h6>
                     <div className="clasifier">{eachOne.status}</div>
                   </div>
                 </div>

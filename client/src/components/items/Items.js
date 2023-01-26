@@ -50,7 +50,7 @@ function Items() {
           {items.map((eachOne) => {
             return (
               <Link
-                key={eachOne.id}
+                key={eachOne._id}
                 className="link"
                 to={`/items/${eachOne._id}`}
               >
@@ -62,7 +62,6 @@ function Items() {
                     </h6>
                   </div>
                   <div className="footer-estimate">
-                    {/* <h6 className="date">{eachOne.phone}</h6> */}
                     <div className="clasifier">{eachOne.type_work}</div>
                   </div>
                 </div>

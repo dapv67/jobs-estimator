@@ -3,6 +3,9 @@ const app = express(); // Inicializar el server express
 const estimatesRoutes = require("./routes/estimatesRoutes");
 const clientsRoutes = require("./routes/clientsRoutes");
 const itemsRoutes = require("./routes/itemsRoutes");
+const invoicesRoutes = require("./routes/invoicesRoutes");
+const checkoutRoute = require("./routes/checkoutRoute");
+const usersRoutes = require("./routes/usersRoutes");
 
 //Body-parser sirve para utilizar req.body.nameVariable y obtener datos de formularios de manera más sencilla
 const bodyParser = require("body-parser");
@@ -27,8 +30,10 @@ app.use(cors());
 
 // Enrutado de endpoints (Routing)
 app.use("/api/estimates", estimatesRoutes);
-// app.use("/api/invoices",invoicesRoutes );
+app.use("/api/invoices", invoicesRoutes);
 app.use("/api/clients", clientsRoutes);
 app.use("/api/items", itemsRoutes);
+app.use("/api/checkout", checkoutRoute);
+app.use("/api/users", usersRoutes);
 
 app.listen(5005, () => console.log("Estoy escuchando")); // Levantar el server

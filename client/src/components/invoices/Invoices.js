@@ -1,24 +1,30 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../utilities/Header";
 import Navigator from "../utilities/Navigator";
 import "../estimates/Estimates.css";
 import floating from "../../assets/floating-btn.svg";
 import { Link } from "react-router-dom";
 
-const estimateId = "0001";
-const name = "Jose Pérez";
-const estimateId2 = "0002";
-const name2 = "Martin Pérez";
-
 function Invoices() {
-  //Flag of dataEmpty?
-  // const dataEmpty = items.length;
-  // let dataFlag = "no-show";
+  const [invoices, setInvoices] = useState([]);
+  //Consumo de api
+  useEffect(() => {
+    fetch("http://127.0.0.1:5005/api/invoices/")
+      .then((response) => response.json())
+      .then((data) => setInvoices(data))
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
+  // Flag of dataEmpty?
+  const dataEmpty = invoices.length;
+  let dataFlag = "no-show";
+  let alertData = "";
 
-  // if (dataEmpty === 0) {
-  //   dataFlag = "show";
-  //   alertData = "No data";
-  // }
+  if (dataEmpty === 0) {
+    dataFlag = "show";
+    alertData = "No data";
+  }
 
   return (
     <>
@@ -33,38 +39,33 @@ function Invoices() {
         </div>
         <div className="total">
           <div className="text-total">Total: </div>
-          <div className="quantity-total"> $11,122.00</div>
+          <div className="quantity-total"> $968.00</div>
         </div>
         <p className="month-year">Nov 2022</p>
-        <div className="list-estimates">
-          <Link className="link" to={`/invoices/${estimateId}`}>
-            <div className="cardX mb-3">
-              <div className="head-estimate">
-                <h6 className="">
-                  # INV {estimateId}: {name}
-                </h6>
-                <h6 className="bold">$32,424.00</h6>
-              </div>
-              <div className="footer-estimate">
-                <h6 className="date">20 Nov 2022</h6>
-                <div className="clasifier">open</div>
-              </div>
-            </div>
-          </Link>
-          <Link className="link" to={`/invoices/${estimateId}`}>
-            <div className="cardX mb-3">
-              <div className="head-estimate">
-                <h6 className="">
-                  # INV {estimateId2}: {name2}
-                </h6>
-                <h6 className="bold">$32,424.00</h6>
-              </div>
-              <div className="footer-estimate">
-                <h6 className="date">20 Nov 2022</h6>
-                <div className="clasifier">open</div>
-              </div>
-            </div>
-          </Link>
+        <div className="list-estimates space-bottom-data">
+          <h1 className={`text-center ${dataFlag}`}>{alertData}</h1>
+          {invoices.map((eachOne) => {
+            return (
+              <Link
+                key={eachOne._id}
+                className="link"
+                to={`/invoices/${eachOne._id}`}
+              >
+                <div className="cardX mb-3">
+                  <div className="head-estimate">
+                    <h6 className="">
+                      # {eachOne.folio}: {eachOne.name_client}
+                    </h6>
+                    <h6 className="bold">$ {eachOne.total}</h6>
+                  </div>
+                  <div className="footer-estimate">
+                    <h6 className="date">{eachOne.job_descrip}</h6>
+                    <div className="clasifier">{eachOne.status}</div>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
 
         <Link className="link" to="/invoices/new">

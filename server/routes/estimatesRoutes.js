@@ -6,16 +6,20 @@ const Estimate = require("../models/Estimate.model");
 
 //Read
 // Cuando ingreses a esta ruta obtendra la funcion callback(funcion con 2 parametros que esta como 2do parametro), puedes retornar formatos json
-router.get("/", (req, res) => {
-  Estimate.find()
+router.get("/u/:estimate_user", (req, res) => {
+  const { estimate_user } = req.params; //Este simplemente expresa la variable que utilizamos en la url de la API
+
+  Estimate.find({ user_auth: estimate_user })
     .then((allEstimates) => res.json(allEstimates))
     .catch((err) => {
       console.log(err);
     });
 });
 //Get the qty of estimates
-router.get("/counter", (req, res) => {
-  Estimate.find()
+router.get("/counter/:estimate_user", (req, res) => {
+  const { estimate_user } = req.params; //Este simplemente expresa la variable que utilizamos en la url de la API
+
+  Estimate.find({ user_auth: estimate_user })
     .count()
     .then((counter) => res.json(counter))
     .catch((err) => {
@@ -37,6 +41,7 @@ router.get("/:estimate_id", (req, res) => {
 //Add
 router.post("/", (req, res) => {
   const data = {
+    user_auth: req.body.userAuth,
     folio: req.body.folio,
     date: req.body.dateEstimate,
     name_client: req.body.nameClient,
@@ -69,16 +74,27 @@ router.post("/", (req, res) => {
 
 //Update
 router.put("/", (req, res) => {
-  let id = req.params.estimate_id;
+  let id = req.body.id;
 
   Estimate.findById(id)
     .then((estimate) => {
-      estimate.data = req.body.data;
+      estimate.date = req.body.dateEstimate;
+      estimate.job_descrip = req.body.job;
+      estimate.status = req.body.status;
+      estimate.base_rate = req.body.rate;
+      estimate.taxes = req.body.taxes;
+      estimate.calculated_taxes = req.body.calculatedTax;
+      estimate.discount = req.body.discount;
+      estimate.calculated_discount = req.body.calculatedDiscount;
+      estimate.subtotal = req.body.subtotal;
+      estimate.total = req.body.total;
+      estimate.items = req.body.items;
+
       estimate
         .save()
         .then(() => {
           res.status(200).send();
-          res.json("Estimate updated!");
+          console.log("Estimate updated!");
         })
         .catch((err) => {
           res.status(500).send(err);
@@ -90,7 +106,7 @@ router.put("/", (req, res) => {
 
 //Delete
 router.delete("/", (req, res) => {
-  let id = req.params.estimate_id;
+  let id = req.body.id;
   Estimate.findByIdAndDelete(id)
     .then(() => {
       res.status(200).send();

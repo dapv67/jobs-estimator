@@ -12,6 +12,7 @@ import Swal from "sweetalert2";
 function NewEstimate() {
   //Hooks
 
+  const [userAuth, setUserAuth] = useState(localStorage.getItem("ui"));
   //states para hacer cuentas
   const [subtotal, setSubtotal] = useState(0);
   const [calculatedDiscount, setCalculatedDiscount] = useState(0);
@@ -54,7 +55,7 @@ function NewEstimate() {
       });
   }, []);
   useEffect(() => {
-    fetch("http://127.0.0.1:5005/api/estimates/counter")
+    fetch(`http://127.0.0.1:5005/api/estimates/counter/${userAuth}`)
       .then((response) => response.json())
       .then((data) => {
         setCounter(parseFloat(data) + 1);
@@ -180,6 +181,7 @@ function NewEstimate() {
   const add = async (e) => {
     e.preventDefault();
     let data = {
+      userAuth: userAuth,
       folio: folio,
       dateEstimate: dateEstimate,
       nameClient: nameClient,
@@ -207,7 +209,7 @@ function NewEstimate() {
       if (response.status === 200) {
         console.log("Success:", response);
         Swal.fire("Confirmation!", "Estimate added!", "success");
-        navigate("/");
+        navigate("/estimates");
       } else {
         console.error("Error:", response);
         Swal.fire(
@@ -258,7 +260,7 @@ function NewEstimate() {
 
       <div className="p-4">
         <div className="d-flex">
-          <Link className="link" to="/">
+          <Link className="link" to={`/estimates/u/${userAuth}`}>
             <img src={back} alt="back-icon" className="me-5" />
           </Link>
           <h1 className="">New Estimate</h1>

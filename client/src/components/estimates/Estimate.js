@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+
+import { useNavigate, useParams } from "react-router-dom";
 import Header from "../utilities/Header";
 import { Form, Button } from "react-bootstrap";
 import back from "../../assets/back.svg";
 
 import { Link } from "react-router-dom";
 import "./NewEstimate.css";
+import Swal from "sweetalert2";
 
 // const sgMail = require("@sendgrid/mail");
 // sgMail.setApiKey(
@@ -17,6 +19,7 @@ import "./NewEstimate.css";
 function Estimate() {
   //useParams nos permite accerder desde un componente a los parametros de la ruta
   const { id } = useParams(); // Este se debe de llamar como lo llamamos en App.js (identificador dinamizado)
+  const [userAuth, setUserAuth] = useState(localStorage.getItem("ui"));
 
   //states para hacer cuentas
   const [subtotal, setSubtotal] = useState(0);
@@ -43,6 +46,7 @@ function Estimate() {
   const [items, setItems] = useState([]);
   const [itemsOptions, setItemsOptions] = useState([]);
   const [selectedItem, setSelectedItem] = useState("");
+  const navigate = useNavigate();
 
   // Consumo de api
   useEffect(() => {
@@ -59,7 +63,7 @@ function Estimate() {
         setEmailClient(data.email_client);
         setStatus(data.status);
         setItems(data.items);
-        setTotal(data.total);
+        // setTotal(data.total);
       })
       .catch((error) => {
         console.log(error);
@@ -169,45 +173,83 @@ function Estimate() {
     setTotal(totalAux);
   }, [totalBeforeTax]);
 
-  const msg = {
-    // js74@mHq!Qt7Bfc. password personal
-    to: "alvarodperezv@gmail.com",
-    from: "alvarodperezv.developer@gmail.com", // Use the email address or domain you verified above
-    subject: "Sending with Twilio SendGrid is Fun",
-    text: "and easy to do anywhere, even with Node.js",
-    html: "<strong>and easy to do anywhere, even with Node.js</strong>",
+  //Functions
+  const updateEstimate = async (e) => {
+    e.preventDefault();
+    let data = {
+      userAuth: localStorage.getItem("ui"),
+      id: id,
+      dateEstimate: dateEstimate,
+      status: status,
+      job: job,
+      rate: rate,
+      taxes: taxes,
+      calculatedTax: calculatedTax,
+      discount: discount,
+      calculatedDiscount: calculatedDiscount,
+      subtotal: subtotal,
+      total: total,
+      items: items,
+    };
+    // console.log(data);
+
+    fetch("http://127.0.0.1:5005/api/estimates", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    }).then((response) => {
+      if (response.status === 200) {
+        console.log("Success:", response);
+        Swal.fire("Confirmation!", "Estimate updated!", "success");
+        navigate(`/estimates/u/${userAuth}`);
+      } else {
+        console.error("Error:", response);
+        Swal.fire(
+          "Error 500!",
+          "Ups! Something happened on the server",
+          "error"
+        );
+      }
+    });
   };
 
-  // function handleSubmit(e) {
-  //   e.preventDefault();
-  //   console.log("You clicked submit.");
-  //   //ES6
-  //   sgMail
-  //     .send(msg)
-  //     .then(() => {
-  //       // form.resetFields();
-  //       console.log("Email Sent!");
-  //       // notification.open({
-  //       //   message: "Message successfu!",
-  //       //   description: "We have successfully received your email.",
-  //       // });
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error: ", error);
-  //     });
-  //   //ES8
-  //   // (async () => {
-  //   //   try {
-  //   //     await sgMail.send(msg);
-  //   //   } catch (error) {
-  //   //     console.error(error);
-
-  //   //     if (error.response) {
-  //   //       console.error(error.response.body);
-  //   //     }
-  //   //   }
-  //   // })();
-  // }
+  //delete
+  const deleteEstimate = async (e) => {
+    e.preventDefault();
+    Swal.fire({
+      title: "Do you want to delete the estimate?",
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: "Delete",
+      denyButtonText: `Don't delete`,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        let data = {
+          id: id,
+        };
+        fetch("http://127.0.0.1:5005/api/estimates", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => {
+            console.log("Success:", response);
+            Swal.fire("Confirmation!", "Estimate deleted!", "success");
+            navigate(`/estimates/u/${userAuth}`);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            Swal.fire("Error!", error, "error");
+          });
+      } else if (result.isDenied) {
+        Swal.fire("Changes are not saved", "", "info");
+      }
+    });
+  };
 
   const handleRemoveItem = (_id) => {
     const newItems = items.filter((item) => item._id !== _id);
@@ -242,18 +284,28 @@ function Estimate() {
     setQuantity(1);
   };
 
+  //Send email
+  const sendEmail = (e) => {
+    window.location.href = `mailto:${emailClient}?Subject=Estimate #${folio}: ${job}`;
+    navigate(`/estimates/u/${userAuth}`);
+    e.preventDefault();
+  };
   return (
     <>
       <Header />
       <div className="main">
         <div className="d-flex">
-          <Link className="link" to="/">
+          <Link className="link" to={`/estimates/u/${userAuth}`}>
             <img src={back} alt="back-icon" className="me-5" />
           </Link>
           <h1 className="">{folio}</h1>
         </div>
         <div className="btn-filters">
-          <Link className="link" to={`/estimates/${id}/pdf`}>
+          <Link
+            className="link"
+            to={`/estimates/${id}/pdf`}
+            state={{ type: "Estimate" }}
+          >
             <div className="selector-rounded">Preview</div>
           </Link>
           <div className="selector-rounded">Make invoice</div>
@@ -264,19 +316,30 @@ function Estimate() {
             <Form.Control type="text" value={folio} disabled readOnly />
           </Form.Group>
           <Form.Group className="mb-3" controlId="">
-            <Form.Label>Status</Form.Label>
-            <Form.Control type="text" value={status} readOnly disabled />
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="">
             <Form.Label>To</Form.Label>
-
             <Form.Control
               type="text"
               value={`${nameClient}, ${emailClient}`}
               readOnly
               disabled
             />
+          </Form.Group>
+          <Form.Group className="mb-3" controlId="">
+            <Form.Label>Status</Form.Label>
+            <Form.Select
+              aria-label="Default select example"
+              value={status}
+              selec
+              onChange={(e) => {
+                setStatus(e.target.value);
+              }}
+            >
+              <option selected="selected" value={status}>
+                {status}
+              </option>
+              <option value="open">open</option>
+              <option value="closed">closed</option>
+            </Form.Select>
           </Form.Group>
           <Form.Group className="mb-3" controlId="">
             <Form.Label>Estimate date</Form.Label>
@@ -409,19 +472,26 @@ function Estimate() {
           </Form.Group>
 
           <div className="d-flex mb-3">
-            <Button
-              className="w-100 bold"
-              variant="primary"
-              size="lg"
-              type="submit"
-              // onClick={handleSubmit}
-            >
-              Send by email
-            </Button>
+            <Link className="w-100" to="#" onClick={sendEmail}>
+              <Button
+                className="w-100 bold"
+                variant="primary"
+                size="lg"
+                type="submit"
+                // onClick={handleSubmit}
+              >
+                Send by email
+              </Button>
+            </Link>
           </div>
           <div className="d-flex mb-3">
-            <Button className="w-100 bold" variant="outline-primary" size="lg">
-              Save
+            <Button
+              className="w-100 bold"
+              variant="outline-primary"
+              size="lg"
+              onClick={updateEstimate}
+            >
+              Update
             </Button>
           </div>
           <div className="d-flex mb-5">
@@ -429,7 +499,7 @@ function Estimate() {
               className="w-100 bold"
               variant="outline-danger"
               size="lg"
-              type="submit"
+              onClick={deleteEstimate}
             >
               Delete
             </Button>

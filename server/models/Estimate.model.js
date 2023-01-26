@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 mongoose.set("strictQuery", false);
 const estimateSchema = mongoose.Schema(
   {
+    user_auth: { type: String, required: true },
     folio: { type: String, required: true },
     date: { type: String, required: true },
     name_client: { type: String, required: true },
