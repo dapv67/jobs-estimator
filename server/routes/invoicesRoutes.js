@@ -6,16 +6,30 @@ const Invoice = require("../models/Invoice.model");
 
 //Read
 // Cuando ingreses a esta ruta obtendra la funcion callback(funcion con 2 parametros que esta como 2do parametro), puedes retornar formatos json
-router.get("/", (req, res) => {
-  Invoice.find()
+router.get("/u/:user", (req, res) => {
+  const { user } = req.params; //Este simplemente expresa la variable que utilizamos en la url de la API
+
+  Invoice.find({ user_auth: user })
+    .then((allInvoices) => res.json(allInvoices))
+    .catch((err) => {
+      console.log(err);
+    });
+});
+router.get("/cat/:user/:category/", (req, res) => {
+  const { user } = req.params; //Este simplemente expresa la variable que utilizamos en la url de la API
+  const { category } = req.params;
+  console.log(user + ", " + category);
+  Invoice.find({ user_auth: user, status: category })
     .then((allInvoices) => res.json(allInvoices))
     .catch((err) => {
       console.log(err);
     });
 });
 //Get the qty of estimates
-router.get("/counter", (req, res) => {
-  Invoice.find()
+router.get("/counter/:user", (req, res) => {
+  const { user } = req.params;
+
+  Invoice.find({ user_auth: user })
     .count()
     .then((counter) => res.json(counter))
     .catch((err) => {
@@ -37,6 +51,7 @@ router.get("/:invoice_id", (req, res) => {
 //Add
 router.post("/", (req, res) => {
   const data = {
+    user_auth: req.body.userAuth,
     folio: req.body.folio,
     date: req.body.dateInvoice,
     due_date: req.body.dueDate,

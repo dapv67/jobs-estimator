@@ -11,6 +11,7 @@ import Swal from "sweetalert2";
 
 function NewInvoice() {
   //Hooks
+  const [userAuth, setUserAuth] = useState(localStorage.getItem("ui"));
 
   //states para hacer cuentas
   const [subtotal, setSubtotal] = useState(0);
@@ -46,7 +47,7 @@ function NewInvoice() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5005/api/clients")
+    fetch(`http://127.0.0.1:5005/api/clients/u/${userAuth}`)
       .then((response) => response.json())
       .then((data) => {
         setClientsOptions(data);
@@ -56,7 +57,7 @@ function NewInvoice() {
       });
   }, []);
   useEffect(() => {
-    fetch("http://127.0.0.1:5005/api/invoices/counter")
+    fetch(`http://127.0.0.1:5005/api/invoices/counter/${userAuth}`)
       .then((response) => response.json())
       .then((data) => {
         setCounter(parseFloat(data) + 1);
@@ -69,7 +70,7 @@ function NewInvoice() {
     setFolio("INV" + counter);
   }, [counter]);
   useEffect(() => {
-    fetch("http://127.0.0.1:5005/api/items")
+    fetch(`http://127.0.0.1:5005/api/items/u/${userAuth}`)
       .then((response) => response.json())
       .then((data) => {
         setItemsOptions(data);
@@ -96,10 +97,23 @@ function NewInvoice() {
         aux += i.subtotal;
       });
       console.log("Aux = " + aux);
-      setSubtotal(aux);
+      setSubtotal(aux + parseFloat(rate));
     };
     subtotalCalculate();
   }, [items]);
+  useEffect(() => {
+    console.log("Items: " + JSON.stringify(items, null, 4));
+    const subtotalCalculate = () => {
+      let aux = 0;
+      items.map((i) => {
+        aux += i.subtotal;
+      });
+      console.log("Aux = " + aux);
+      setSubtotal(aux + parseFloat(rate));
+    };
+    subtotalCalculate();
+  }, [rate]);
+
   useEffect(() => {
     console.log("Subtotal = " + subtotal);
   }, [subtotal]);
@@ -107,45 +121,28 @@ function NewInvoice() {
   //Efectos para calcular el descuento
   useEffect(() => {
     let discountTotal = 0;
-    discountTotal =
-      ((parseFloat(subtotal) + parseFloat(rate)) * parseFloat(discount)) / 100;
-    console.log("Discount after calculate = " + discountTotal);
+    discountTotal = (parseFloat(subtotal) * parseFloat(discount)) / 100;
+    console.log("Descuento calculado = " + discountTotal);
     setCalculatedDiscount(discountTotal);
   }, [subtotal]);
+
   useEffect(() => {
     let discountTotal = 0;
-    discountTotal =
-      ((parseFloat(subtotal) + parseFloat(rate)) * parseFloat(discount)) / 100;
-    console.log("Discount after calculate = " + discountTotal);
+    discountTotal = (parseFloat(subtotal) * parseFloat(discount)) / 100;
+    console.log("Descuento calculado = " + discountTotal);
     setCalculatedDiscount(discountTotal);
   }, [discount]);
-  useEffect(() => {
-    let discountTotal = 0;
-    discountTotal =
-      ((parseFloat(subtotal) + parseFloat(rate)) * parseFloat(discount)) / 100;
-    console.log("Discount after calculate = " + discountTotal);
-    setCalculatedDiscount(discountTotal);
-  }, [rate]);
 
   //Efecto para calular total antes de impuestos
   useEffect(() => {
     let totalBeforeAux = 0;
-    totalBeforeAux =
-      parseFloat(subtotal) + parseFloat(rate) - parseFloat(calculatedDiscount);
+    totalBeforeAux = parseFloat(subtotal) - parseFloat(calculatedDiscount);
     console.log("Total antes de impuestos = " + totalBeforeAux);
     setTotalBeforeTax(totalBeforeAux);
   }, [calculatedDiscount]);
   useEffect(() => {
     let totalBeforeAux = 0;
-    totalBeforeAux =
-      parseFloat(subtotal) + parseFloat(rate) - parseFloat(calculatedDiscount);
-    console.log("Total antes de impuestos = " + totalBeforeAux);
-    setTotalBeforeTax(totalBeforeAux);
-  }, [rate]);
-  useEffect(() => {
-    let totalBeforeAux = 0;
-    totalBeforeAux =
-      parseFloat(subtotal) + parseFloat(rate) - parseFloat(calculatedDiscount);
+    totalBeforeAux = parseFloat(subtotal) - parseFloat(calculatedDiscount);
     console.log("Total antes de impuestos = " + totalBeforeAux);
     setTotalBeforeTax(totalBeforeAux);
   }, [subtotal]);
@@ -162,7 +159,7 @@ function NewInvoice() {
     calculatedTaxAux = (parseFloat(totalBeforeTax) * parseFloat(taxes)) / 100;
     console.log("Impuesto calculado = " + calculatedTaxAux);
     setCalculatedTax(calculatedTaxAux);
-  }, [subtotal]);
+  }, [totalBeforeTax]);
 
   //Efecto para calcular el total
   useEffect(() => {
@@ -171,6 +168,7 @@ function NewInvoice() {
     console.log("Total = " + totalAux);
     setTotal(totalAux);
   }, [calculatedTax]);
+
   useEffect(() => {
     let totalAux = 0;
     totalAux = parseFloat(totalBeforeTax) + parseFloat(calculatedTax);
@@ -182,6 +180,7 @@ function NewInvoice() {
   const add = async (e) => {
     e.preventDefault();
     let data = {
+      userAuth: userAuth,
       folio: folio,
       dateInvoice: dateInvoice,
       dueDate: dueDate,
@@ -210,7 +209,7 @@ function NewInvoice() {
       if (response.status === 200) {
         console.log("Success:", response);
         Swal.fire("Confirmation!", "Invoice added!", "success");
-        navigate("/invoices");
+        navigate(`/invoices/u/${userAuth}`);
       } else {
         console.error("Error:", response);
         Swal.fire(
@@ -261,7 +260,7 @@ function NewInvoice() {
 
       <div className="p-4">
         <div className="d-flex">
-          <Link className="link" to="/invoices">
+          <Link className="link" to={`/invoices/u/${userAuth}`}>
             <img src={back} alt="back-icon" className="me-5" />
           </Link>
           <h1 className="">New Invoice</h1>

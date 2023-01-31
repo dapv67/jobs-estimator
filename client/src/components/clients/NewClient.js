@@ -10,6 +10,8 @@ import Swal from "sweetalert2";
 
 function NewClient() {
   //Hooks
+  const [userAuth, setUserAuth] = useState(localStorage.getItem("ui"));
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -21,6 +23,7 @@ function NewClient() {
   const add = async (e) => {
     e.preventDefault();
     let data = {
+      userAuth: userAuth,
       name: name,
       email: email,
       phone: phone,
@@ -39,7 +42,7 @@ function NewClient() {
       if (response.status === 200) {
         console.log("Success:", response);
         Swal.fire("Confirmation!", "Client added!", "success");
-        navigate("/clients");
+        navigate(`/clients/u/${userAuth}`);
       } else {
         console.error("Error:", response);
         Swal.fire(
@@ -56,7 +59,7 @@ function NewClient() {
       <Header />
       <div className="main">
         <div className="d-flex">
-          <Link className="link" to="/clients">
+          <Link className="link" to={`/clients/u/${userAuth}`}>
             <img src={back} alt="back-icon" className="me-5" />
           </Link>
           <h1 className="">CLI </h1>

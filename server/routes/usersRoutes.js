@@ -115,4 +115,30 @@ router.get("/:user_id", (req, res) => {
       console.log(err);
     });
 });
+
+//Update
+router.put("/", (req, res) => {
+  let id = req.body.id;
+  // console.log(id);
+
+  User.findById(id)
+    .then((user) => {
+      user.name_business = req.body.business;
+      user.phone_business = req.body.phone;
+      user.address_business = req.body.address;
+
+      user
+        .save()
+        .then(() => {
+          res.status(200).send();
+          console.log("User updated!");
+        })
+        .catch((err) => {
+          res.status(500).send(err);
+          console.log("Error: " + err);
+        });
+    })
+    .catch((err) => res.status(400).json("Error: " + err));
+});
+
 module.exports = router;

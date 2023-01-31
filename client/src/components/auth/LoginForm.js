@@ -36,7 +36,7 @@ function LoginForm() {
       const data = await response.json();
       setToken(data); //OnlyTest
       document.cookie = `token=${data.token};max-age=${
-        60 * 10
+        60 * 30
       };path=/;samasite=strict`;
       console.log(document.cookie);
       localStorage.setItem("isAuth", document.cookie); //Token auth

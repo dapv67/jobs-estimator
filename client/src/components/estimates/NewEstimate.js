@@ -45,7 +45,7 @@ function NewEstimate() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5005/api/clients")
+    fetch(`http://127.0.0.1:5005/api/clients/u/${userAuth}`)
       .then((response) => response.json())
       .then((data) => {
         setClientsOptions(data);
@@ -67,8 +67,9 @@ function NewEstimate() {
   useEffect(() => {
     setFolio("EST" + counter);
   }, [counter]);
+
   useEffect(() => {
-    fetch("http://127.0.0.1:5005/api/items")
+    fetch(`http://127.0.0.1:5005/api/items/u/${userAuth}`)
       .then((response) => response.json())
       .then((data) => {
         setItemsOptions(data);
@@ -95,10 +96,23 @@ function NewEstimate() {
         aux += i.subtotal;
       });
       console.log("Aux = " + aux);
-      setSubtotal(aux);
+      setSubtotal(aux + parseFloat(rate));
     };
     subtotalCalculate();
   }, [items]);
+  useEffect(() => {
+    console.log("Items: " + JSON.stringify(items, null, 4));
+    const subtotalCalculate = () => {
+      let aux = 0;
+      items.map((i) => {
+        aux += i.subtotal;
+      });
+      console.log("Aux = " + aux);
+      setSubtotal(aux + parseFloat(rate));
+    };
+    subtotalCalculate();
+  }, [rate]);
+
   useEffect(() => {
     console.log("Subtotal = " + subtotal);
   }, [subtotal]);
@@ -106,45 +120,28 @@ function NewEstimate() {
   //Efectos para calcular el descuento
   useEffect(() => {
     let discountTotal = 0;
-    discountTotal =
-      ((parseFloat(subtotal) + parseFloat(rate)) * parseFloat(discount)) / 100;
-    console.log("Discount after calculate = " + discountTotal);
+    discountTotal = (parseFloat(subtotal) * parseFloat(discount)) / 100;
+    console.log("Descuento calculado = " + discountTotal);
     setCalculatedDiscount(discountTotal);
   }, [subtotal]);
+
   useEffect(() => {
     let discountTotal = 0;
-    discountTotal =
-      ((parseFloat(subtotal) + parseFloat(rate)) * parseFloat(discount)) / 100;
-    console.log("Discount after calculate = " + discountTotal);
+    discountTotal = (parseFloat(subtotal) * parseFloat(discount)) / 100;
+    console.log("Descuento calculado = " + discountTotal);
     setCalculatedDiscount(discountTotal);
   }, [discount]);
-  useEffect(() => {
-    let discountTotal = 0;
-    discountTotal =
-      ((parseFloat(subtotal) + parseFloat(rate)) * parseFloat(discount)) / 100;
-    console.log("Discount after calculate = " + discountTotal);
-    setCalculatedDiscount(discountTotal);
-  }, [rate]);
 
-  //Efecto para calular total antes de impuestos
+  //Efecto para calcular total antes de impuestos
   useEffect(() => {
     let totalBeforeAux = 0;
-    totalBeforeAux =
-      parseFloat(subtotal) + parseFloat(rate) - parseFloat(calculatedDiscount);
+    totalBeforeAux = parseFloat(subtotal) - parseFloat(calculatedDiscount);
     console.log("Total antes de impuestos = " + totalBeforeAux);
     setTotalBeforeTax(totalBeforeAux);
   }, [calculatedDiscount]);
   useEffect(() => {
     let totalBeforeAux = 0;
-    totalBeforeAux =
-      parseFloat(subtotal) + parseFloat(rate) - parseFloat(calculatedDiscount);
-    console.log("Total antes de impuestos = " + totalBeforeAux);
-    setTotalBeforeTax(totalBeforeAux);
-  }, [rate]);
-  useEffect(() => {
-    let totalBeforeAux = 0;
-    totalBeforeAux =
-      parseFloat(subtotal) + parseFloat(rate) - parseFloat(calculatedDiscount);
+    totalBeforeAux = parseFloat(subtotal) - parseFloat(calculatedDiscount);
     console.log("Total antes de impuestos = " + totalBeforeAux);
     setTotalBeforeTax(totalBeforeAux);
   }, [subtotal]);
@@ -161,7 +158,7 @@ function NewEstimate() {
     calculatedTaxAux = (parseFloat(totalBeforeTax) * parseFloat(taxes)) / 100;
     console.log("Impuesto calculado = " + calculatedTaxAux);
     setCalculatedTax(calculatedTaxAux);
-  }, [subtotal]);
+  }, [totalBeforeTax]);
 
   //Efecto para calcular el total
   useEffect(() => {
@@ -170,6 +167,7 @@ function NewEstimate() {
     console.log("Total = " + totalAux);
     setTotal(totalAux);
   }, [calculatedTax]);
+
   useEffect(() => {
     let totalAux = 0;
     totalAux = parseFloat(totalBeforeTax) + parseFloat(calculatedTax);
@@ -209,7 +207,7 @@ function NewEstimate() {
       if (response.status === 200) {
         console.log("Success:", response);
         Swal.fire("Confirmation!", "Estimate added!", "success");
-        navigate("/estimates");
+        navigate(`/estimates/u/${userAuth}`);
       } else {
         console.error("Error:", response);
         Swal.fire(

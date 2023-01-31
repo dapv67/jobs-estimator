@@ -12,28 +12,42 @@
 .btn-filters div {
   margin-right: 1rem;
 }
-.selector-all {
+/* .selector-all {
   background-color: #2b97fa;
-  padding: 4px 12px;
   border-radius: 15px;
+  padding: 4px 12px;
   color: white;
   font-size: 1rem;
-}
-.selector-rounded {
-  /* background-color: #2b97fa; */
-
-  border-radius: 15px;
-  border: 1px solid #2b97fa;
-
-  padding: 4px 12px;
-  color: grey;
-  font-size: 1rem;
-}
+} */
 .selector {
   padding: 4px 12px;
+  border-radius: 15px;
+  border-style: none;
+  color: grey;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-right: 0.5rem;
+}
+.active-dos {
+  background-color: #2b97fa;
+  border-radius: 15px;
+  color: white;
+}
+.selector:hover {
+  background-color: #54a7f5;
+  color: white;
+}
+
+.selector-rounded {
+  border-radius: 15px;
+  border: 1px solid #2b97fa;
+  cursor: pointer;
+
+  padding: 4px 12px;
   color: grey;
   font-size: 1rem;
 }
+
 .total {
   margin: 1rem 0;
   display: flex;

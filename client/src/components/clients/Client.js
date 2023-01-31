@@ -11,6 +11,7 @@ import "../estimates/NewEstimate.css";
 function Client() {
   //Hooks
   const { id } = useParams();
+  const [userAuth, setUserAuth] = useState(localStorage.getItem("ui"));
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -59,7 +60,7 @@ function Client() {
       if (response.status === 200) {
         console.log("Success:", response);
         Swal.fire("Confirmation!", "Client updated!", "success");
-        navigate("/clients");
+        navigate(`/clients/u/${userAuth}`);
       } else {
         console.error("Error:", response);
         Swal.fire(
@@ -95,7 +96,7 @@ function Client() {
           .then((response) => {
             console.log("Success:", response);
             Swal.fire("Confirmation!", "Client deleted!", "success");
-            navigate("/clients");
+            navigate(`/clients/u/${userAuth}`);
           })
           .catch((error) => {
             console.error("Error:", error);
@@ -111,7 +112,7 @@ function Client() {
       <Header />
       <div className="main">
         <div className="d-flex">
-          <Link className="link" to="/clients">
+          <Link className="link" to={`/clients/u/${userAuth}`}>
             <img src={back} alt="back-icon" className="me-5" />
           </Link>
           <h1 className="">CLI {name}</h1>

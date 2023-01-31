@@ -6,20 +6,29 @@ const Estimate = require("../models/Estimate.model");
 
 //Read
 // Cuando ingreses a esta ruta obtendra la funcion callback(funcion con 2 parametros que esta como 2do parametro), puedes retornar formatos json
-router.get("/u/:estimate_user", (req, res) => {
-  const { estimate_user } = req.params; //Este simplemente expresa la variable que utilizamos en la url de la API
-
-  Estimate.find({ user_auth: estimate_user })
+router.get("/u/:user", (req, res) => {
+  const { user } = req.params; //Este simplemente expresa la variable que utilizamos en la url de la API
+  Estimate.find({ user_auth: user })
+    .then((allEstimates) => res.json(allEstimates))
+    .catch((err) => {
+      console.log(err);
+    });
+});
+router.get("/cat/:user/:category/", (req, res) => {
+  const { user } = req.params; //Este simplemente expresa la variable que utilizamos en la url de la API
+  const { category } = req.params;
+  console.log(user + ", " + category);
+  Estimate.find({ user_auth: user, status: category })
     .then((allEstimates) => res.json(allEstimates))
     .catch((err) => {
       console.log(err);
     });
 });
 //Get the qty of estimates
-router.get("/counter/:estimate_user", (req, res) => {
-  const { estimate_user } = req.params; //Este simplemente expresa la variable que utilizamos en la url de la API
+router.get("/counter/:user", (req, res) => {
+  const { user } = req.params; //Este simplemente expresa la variable que utilizamos en la url de la API
 
-  Estimate.find({ user_auth: estimate_user })
+  Estimate.find({ user_auth: user })
     .count()
     .then((counter) => res.json(counter))
     .catch((err) => {

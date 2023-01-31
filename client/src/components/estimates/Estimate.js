@@ -9,13 +9,6 @@ import { Link } from "react-router-dom";
 import "./NewEstimate.css";
 import Swal from "sweetalert2";
 
-// const sgMail = require("@sendgrid/mail");
-// sgMail.setApiKey(
-//   "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"
-// );
-// Other option
-// sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
 function Estimate() {
   //useParams nos permite accerder desde un componente a los parametros de la ruta
   const { id } = useParams(); // Este se debe de llamar como lo llamamos en App.js (identificador dinamizado)
@@ -26,21 +19,24 @@ function Estimate() {
   const [calculatedDiscount, setCalculatedDiscount] = useState(0);
   const [totalBeforeTax, setTotalBeforeTax] = useState(0);
   const [calculatedTax, setCalculatedTax] = useState(0);
+  const [total, setTotal] = useState(0);
 
   //states de los inputs
   const [rate, setRate] = useState(0);
   const [taxes, setTaxes] = useState(0);
   const [discount, setDiscount] = useState(0);
-  const [total, setTotal] = useState(0);
 
   const [dateEstimate, setDateEstimate] = useState("");
   const [nameClient, setNameClient] = useState("");
   const [emailClient, setEmailClient] = useState("");
+  const [addressClient, setAddressClient] = useState("");
 
   const [job, setJob] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [counter, setCounter] = useState(0);
   const [folio, setFolio] = useState("");
+  const [counterInv, setCounterInv] = useState(0);
+  const [folioInv, setFolioInv] = useState("");
   const [status, setStatus] = useState("");
 
   const [items, setItems] = useState([]);
@@ -61,18 +57,32 @@ function Estimate() {
         setTaxes(data.taxes);
         setNameClient(data.name_client);
         setEmailClient(data.email_client);
+        setAddressClient(data.address_client);
         setStatus(data.status);
         setItems(data.items);
-        // setTotal(data.total);
       })
       .catch((error) => {
         console.log(error);
       });
   }, []);
 
+  useEffect(() => {
+    fetch(`http://127.0.0.1:5005/api/invoices/counter/${userAuth}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setCounterInv(parseFloat(data) + 1);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [counterInv]);
+  useEffect(() => {
+    setFolioInv("INV" + counterInv);
+  }, [counterInv]);
+
   //Get the items options
   useEffect(() => {
-    fetch("http://127.0.0.1:5005/api/items")
+    fetch(`http://127.0.0.1:5005/api/items/u/${userAuth}`)
       .then((response) => response.json())
       .then((data) => {
         setItemsOptions(data);
@@ -91,10 +101,23 @@ function Estimate() {
         aux += i.subtotal;
       });
       console.log("Aux = " + aux);
-      setSubtotal(aux);
+      setSubtotal(aux + parseFloat(rate));
     };
     subtotalCalculate();
   }, [items]);
+  useEffect(() => {
+    console.log("Items: " + JSON.stringify(items, null, 4));
+    const subtotalCalculate = () => {
+      let aux = 0;
+      items.map((i) => {
+        aux += i.subtotal;
+      });
+      console.log("Aux = " + aux);
+      setSubtotal(aux + parseFloat(rate));
+    };
+    subtotalCalculate();
+  }, [rate]);
+
   useEffect(() => {
     console.log("Subtotal = " + subtotal);
   }, [subtotal]);
@@ -102,45 +125,28 @@ function Estimate() {
   //Efectos para calcular el descuento
   useEffect(() => {
     let discountTotal = 0;
-    discountTotal =
-      ((parseFloat(subtotal) + parseFloat(rate)) * parseFloat(discount)) / 100;
-    console.log("Discount after calculate = " + discountTotal);
+    discountTotal = (parseFloat(subtotal) * parseFloat(discount)) / 100;
+    console.log("Descuento calculado = " + discountTotal);
     setCalculatedDiscount(discountTotal);
   }, [subtotal]);
+
   useEffect(() => {
     let discountTotal = 0;
-    discountTotal =
-      ((parseFloat(subtotal) + parseFloat(rate)) * parseFloat(discount)) / 100;
-    console.log("Discount after calculate = " + discountTotal);
+    discountTotal = (parseFloat(subtotal) * parseFloat(discount)) / 100;
+    console.log("Descuento calculado = " + discountTotal);
     setCalculatedDiscount(discountTotal);
   }, [discount]);
-  useEffect(() => {
-    let discountTotal = 0;
-    discountTotal =
-      ((parseFloat(subtotal) + parseFloat(rate)) * parseFloat(discount)) / 100;
-    console.log("Discount after calculate = " + discountTotal);
-    setCalculatedDiscount(discountTotal);
-  }, [rate]);
 
   //Efecto para calular total antes de impuestos
   useEffect(() => {
     let totalBeforeAux = 0;
-    totalBeforeAux =
-      parseFloat(subtotal) + parseFloat(rate) - parseFloat(calculatedDiscount);
+    totalBeforeAux = parseFloat(subtotal) - parseFloat(calculatedDiscount);
     console.log("Total antes de impuestos = " + totalBeforeAux);
     setTotalBeforeTax(totalBeforeAux);
   }, [calculatedDiscount]);
   useEffect(() => {
     let totalBeforeAux = 0;
-    totalBeforeAux =
-      parseFloat(subtotal) + parseFloat(rate) - parseFloat(calculatedDiscount);
-    console.log("Total antes de impuestos = " + totalBeforeAux);
-    setTotalBeforeTax(totalBeforeAux);
-  }, [rate]);
-  useEffect(() => {
-    let totalBeforeAux = 0;
-    totalBeforeAux =
-      parseFloat(subtotal) + parseFloat(rate) - parseFloat(calculatedDiscount);
+    totalBeforeAux = parseFloat(subtotal) - parseFloat(calculatedDiscount);
     console.log("Total antes de impuestos = " + totalBeforeAux);
     setTotalBeforeTax(totalBeforeAux);
   }, [subtotal]);
@@ -157,7 +163,7 @@ function Estimate() {
     calculatedTaxAux = (parseFloat(totalBeforeTax) * parseFloat(taxes)) / 100;
     console.log("Impuesto calculado = " + calculatedTaxAux);
     setCalculatedTax(calculatedTaxAux);
-  }, [subtotal]);
+  }, [totalBeforeTax]);
 
   //Efecto para calcular el total
   useEffect(() => {
@@ -166,6 +172,7 @@ function Estimate() {
     console.log("Total = " + totalAux);
     setTotal(totalAux);
   }, [calculatedTax]);
+
   useEffect(() => {
     let totalAux = 0;
     totalAux = parseFloat(totalBeforeTax) + parseFloat(calculatedTax);
@@ -174,10 +181,89 @@ function Estimate() {
   }, [totalBeforeTax]);
 
   //Functions
+  const makeInvoice = async (e) => {
+    e.preventDefault();
+    let data = {
+      userAuth: userAuth,
+      folio: folioInv,
+      dateInvoice: dateEstimate,
+      dueDate: dateEstimate,
+      nameClient: nameClient,
+      emailClient: emailClient,
+      addressClient: addressClient,
+      job: job,
+      rate: rate,
+      taxes: taxes,
+      calculatedTax: calculatedTax,
+      discount: discount,
+      calculatedDiscount: calculatedDiscount,
+      subtotal: subtotal,
+      total: total,
+      items: items,
+    };
+    //1 Invoice added
+    fetch("http://127.0.0.1:5005/api/invoices", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    }).then((response) => {
+      if (response.status === 200) {
+        console.log("Success:", response);
+        Swal.fire("Confirmation!", "Invoice added!", "success");
+        navigate(`/estimates/u/${userAuth}`);
+      } else {
+        console.error("Error:", response);
+        Swal.fire(
+          "Error 500!",
+          "Ups! Something happened on the server",
+          "error"
+        );
+      }
+    });
+
+    let data2 = {
+      id: id,
+      dateEstimate: dateEstimate,
+      status: "closed",
+      job: job,
+      rate: rate,
+      taxes: taxes,
+      calculatedTax: calculatedTax,
+      discount: discount,
+      calculatedDiscount: calculatedDiscount,
+      subtotal: subtotal,
+      total: total,
+      items: items,
+    };
+    // console.log(data);
+
+    fetch("http://127.0.0.1:5005/api/estimates", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data2),
+    }).then((response) => {
+      if (response.status === 200) {
+        console.log("Success:", response);
+        Swal.fire("Confirmation!", "Estimate now is an Invoice!", "success");
+        navigate(`/estimates/u/${userAuth}`);
+      } else {
+        console.error("Error:", response);
+        Swal.fire(
+          "Error 500!",
+          "Ups! Something happened on the server",
+          "error"
+        );
+      }
+    });
+  };
+
   const updateEstimate = async (e) => {
     e.preventDefault();
     let data = {
-      userAuth: localStorage.getItem("ui"),
       id: id,
       dateEstimate: dateEstimate,
       status: status,
@@ -308,7 +394,16 @@ function Estimate() {
           >
             <div className="selector-rounded">Preview</div>
           </Link>
-          <div className="selector-rounded">Make invoice</div>
+          <Link
+            className="link"
+            to={`/estimates/${id}/pdf`}
+            state={{ type: "Estimate", prices: 0 }}
+          >
+            <div className="selector-rounded">Preview without prices</div>
+          </Link>
+          <div className="selector-rounded" onClick={makeInvoice}>
+            Make invoice
+          </div>
         </div>
         <Form className="mt-4">
           <Form.Group className="mb-3" controlId="">
@@ -467,9 +562,7 @@ function Estimate() {
             <h3>Total:</h3>
             <h3>{total}</h3>
           </div>
-          <Form.Group className="mb-5" controlId="formBasicCheckbox">
-            <Form.Check type="checkbox" label="Hide unit prices for customer" />
-          </Form.Group>
+          <div className="mb-5"></div>
 
           <div className="d-flex mb-3">
             <Link className="w-100" to="#" onClick={sendEmail}>

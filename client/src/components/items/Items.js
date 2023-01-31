@@ -8,10 +8,11 @@ import { Link } from "react-router-dom";
 function Items() {
   //states
   const [items, setItems] = useState([]);
+  const [userAuth, setUserAuth] = useState(localStorage.getItem("ui"));
 
   //Consumo de api
   useEffect(() => {
-    fetch("http://127.0.0.1:5005/api/items/")
+    fetch(`http://127.0.0.1:5005/api/items/u/${userAuth}`)
       .then((response) => response.json())
       .then((data) => {
         setItems(data);
@@ -20,6 +21,22 @@ function Items() {
         console.log(error);
       });
   }, []);
+  const filterAll = () => {
+    fetch(`http://127.0.0.1:5005/api/items/u/${userAuth}`)
+      .then((response) => response.json())
+      .then((data) => setItems(data))
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  const filterCategory = (category) => {
+    fetch(`http://127.0.0.1:5005/api/items/cat/${userAuth}/${category}`)
+      .then((response) => response.json())
+      .then((data) => setItems(data))
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
   //Flag of dataEmpty?
   const dataEmpty = items.length;
@@ -38,10 +55,26 @@ function Items() {
       <div className="main">
         <h1 className="title">Items</h1>
         <div className="btn-filters">
-          <div className="selector-all">All</div>
-          <div className="selector">Painting</div>
-          <div className="selector">Roofing</div>
-          <div className="selector">Etc...</div>
+          <button className="selector" onClick={filterAll}>
+            All
+          </button>
+          <button
+            className="selector"
+            onClick={() => {
+              filterCategory("painting");
+            }}
+          >
+            Painting
+          </button>
+          <button
+            className="selector"
+            onClick={() => {
+              filterCategory("roofing");
+            }}
+          >
+            Roofing
+          </button>
+          <button className="selector">Etc...</button>
         </div>
 
         <p className="month-year">All</p>

@@ -6,16 +6,48 @@ import floating from "../../assets/floating-btn.svg";
 import { Link } from "react-router-dom";
 
 function Invoices() {
+  const [total, setTotal] = useState(0);
+
   const [invoices, setInvoices] = useState([]);
+  const [userAuth, setUserAuth] = useState(localStorage.getItem("ui"));
+
   //Consumo de api
   useEffect(() => {
-    fetch("http://127.0.0.1:5005/api/invoices/")
+    fetch(`http://127.0.0.1:5005/api/invoices/u/${userAuth}`)
       .then((response) => response.json())
       .then((data) => setInvoices(data))
       .catch((error) => {
         console.log(error);
       });
   }, []);
+  useEffect(() => {
+    let auxTotal = 0;
+    invoices.map((i) => {
+      auxTotal += i.total;
+    });
+    setTotal(auxTotal);
+    console.log(auxTotal);
+  }, [invoices]);
+
+  const filterAll = () => {
+    fetch(`http://127.0.0.1:5005/api/invoices/u/${userAuth}`)
+      .then((response) => response.json())
+      .then((data) => setInvoices(data))
+      .catch((error) => {
+        console.log(error);
+      });
+    setTotal(0);
+  };
+  const filterCategory = (category) => {
+    fetch(`http://127.0.0.1:5005/api/invoices/cat/${userAuth}/${category}`)
+      .then((response) => response.json())
+      .then((data) => setInvoices(data))
+      .catch((error) => {
+        console.log(error);
+      });
+    setTotal(0);
+  };
+
   // Flag of dataEmpty?
   const dataEmpty = invoices.length;
   let dataFlag = "no-show";
@@ -33,13 +65,29 @@ function Invoices() {
         <h1 className="title">Invoices</h1>
 
         <div className="btn-filters">
-          <div className="selector-all">All</div>
-          <div className="selector">Outstanding</div>
-          <div className="selector">Paid</div>
+          <button className="selector" onClick={filterAll}>
+            All
+          </button>
+          <button
+            className="selector"
+            onClick={() => {
+              filterCategory("outstanding");
+            }}
+          >
+            Outstanding
+          </button>
+          <button
+            className="selector"
+            onClick={() => {
+              filterCategory("paid");
+            }}
+          >
+            Paid
+          </button>
         </div>
         <div className="total">
           <div className="text-total">Total: </div>
-          <div className="quantity-total"> $968.00</div>
+          <div className="quantity-total"> ${total}</div>
         </div>
         <p className="month-year">Nov 2022</p>
         <div className="list-estimates space-bottom-data">

@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 mongoose.set("strictQuery", false);
 const itemSchema = mongoose.Schema(
   {
+    user_auth: { type: String, required: true },
     descrip: { type: String, required: true },
     type_work: { type: String, required: true },
     price: { type: Number, required: true },

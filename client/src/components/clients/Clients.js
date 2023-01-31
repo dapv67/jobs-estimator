@@ -8,10 +8,11 @@ import { Form } from "react-bootstrap";
 
 function Clients() {
   const [clients, setClients] = useState([]);
+  const [userAuth, setUserAuth] = useState(localStorage.getItem("ui"));
 
   // Consumo de api (Aqui es donde conectamos el cliente con el server)
   const loadData = () => {
-    fetch("http://127.0.0.1:5005/api/clients")
+    fetch(`http://127.0.0.1:5005/api/clients/u/${userAuth}`)
       .then((response) => response.json())
       .then((data) => setClients(data))
       .catch((error) => {

@@ -7,23 +7,51 @@ import floating from "../../assets/floating-btn.svg";
 import { Link } from "react-router-dom";
 
 function Estimates() {
-  const [token, setToken] = useContext(AppContext); //Global state
+  // const [token, setToken] = useContext(AppContext); //Global state
 
   const [estimates, setEstimates] = useState([]);
+  // const [auxTotal, setAuxTotal] = useState(0);
+  const [total, setTotal] = useState(0);
   const [userAuth, setUserAuth] = useState(localStorage.getItem("ui"));
 
   //Consumo de api
   useEffect(() => {
     fetch(`http://127.0.0.1:5005/api/estimates/u/${userAuth}`)
       .then((response) => response.json())
+      .then((data) => {
+        setEstimates(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
+  useEffect(() => {
+    let auxTotal = 0;
+    estimates.map((i) => {
+      auxTotal += i.total;
+    });
+    setTotal(auxTotal);
+    console.log("Total=" + auxTotal);
+  }, [estimates]);
+
+  const filterAll = () => {
+    fetch(`http://127.0.0.1:5005/api/estimates/u/${userAuth}`)
+      .then((response) => response.json())
       .then((data) => setEstimates(data))
       .catch((error) => {
         console.log(error);
       });
-    console.log(token);
-    // console.log(token.user);
-    // console.log(state.user);
-  }, []);
+    setTotal(0);
+  };
+  const filterCategory = (category) => {
+    fetch(`http://127.0.0.1:5005/api/estimates/cat/${userAuth}/${category}`)
+      .then((response) => response.json())
+      .then((data) => setEstimates(data))
+      .catch((error) => {
+        console.log(error);
+      });
+    setTotal(0);
+  };
 
   //Flag of dataEmpty?
   const dataEmpty = estimates.length;
@@ -42,13 +70,35 @@ function Estimates() {
         <h1 className="title">Estimates {}</h1>
 
         <div className="btn-filters">
-          <div className="selector-all">All</div>
-          <div className="selector">Open</div>
-          <div className="selector">Closed</div>
+          <button
+            className={`selector ${({ isActive }) =>
+              isActive ? "active-dos" : ""}`}
+            onClick={filterAll}
+          >
+            All
+          </button>
+          <button
+            className={`selector ${({ isActive }) =>
+              isActive ? "active-dos" : ""}`}
+            onClick={() => {
+              filterCategory("open");
+            }}
+          >
+            Open
+          </button>
+          <button
+            className={`selector ${({ isActive }) =>
+              isActive ? "active-dos" : ""}`}
+            onClick={() => {
+              filterCategory("closed");
+            }}
+          >
+            Closed
+          </button>
         </div>
         <div className="total">
           <div className="text-total">Total: </div>
-          <div className="quantity-total"> $880.00</div>
+          <div className="quantity-total"> ${total}</div>
         </div>
         <p className="month-year">Nov 2022</p>
         <div className="list-estimates space-bottom-data">

@@ -9,6 +9,8 @@ import "../estimates/NewEstimate.css";
 import Swal from "sweetalert2";
 
 function NewItem() {
+  const [userAuth, setUserAuth] = useState(localStorage.getItem("ui"));
+
   const [descrip, setDescrip] = useState("");
   const [type_work, setType_work] = useState("");
   const [price, setPrice] = useState("");
@@ -19,6 +21,7 @@ function NewItem() {
   const add = async (e) => {
     e.preventDefault();
     let data = {
+      userAuth: userAuth,
       descrip: descrip,
       type_work: type_work,
       price: price,
@@ -36,7 +39,7 @@ function NewItem() {
       if (response.status === 200) {
         console.log("Success:", response);
         Swal.fire("Confirmation!", "Item added!", "success");
-        navigate("/items");
+        navigate(`/items/u/${userAuth}`);
       } else {
         console.error("Error:", response);
         Swal.fire(
@@ -52,7 +55,7 @@ function NewItem() {
       <Header />
       <div className="main">
         <div className="d-flex">
-          <Link className="link" to="/items">
+          <Link className="link" to={`/items/u/${userAuth}`}>
             <img src={back} alt="back-icon" className="me-5" />
           </Link>
           <h1 className="">ITE</h1>

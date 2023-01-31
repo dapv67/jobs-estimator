@@ -13,7 +13,10 @@ import Items from "./components/items/Items";
 import Item from "./components/items/Item";
 import NewItem from "./components/items/NewItem";
 import Viewer from "./components/utilities/ViewerPdf";
-import Home from "./components/Home";
+import Error404 from "./components/utilities/Error404";
+import Profile from "./components/utilities/Profile";
+
+// import Home from "./components/Home";
 import LoginForm from "./components/auth/LoginForm";
 import SignupForm from "./components/auth/SignupForm";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -46,10 +49,10 @@ function App() {
             <Route path="/items/u/:id" element={<Items />} />
             <Route path="/items/new" element={<NewItem />} />
             <Route path="/items/:id" element={<Item />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
+          <Route path="*" element={<Error404 />} />
           {/* <Route path="/suscription" element={<Suscription />} /> */}
-
-          {/* <Route path="*" element={<Error404 />} /> */}
         </Routes>
       </Provider>
     </div>

@@ -218,9 +218,13 @@ const Format = (props) => {
             </View>
             <View style={styles.contentTable}>
               <Text style={styles.columnDescrip}>{job} (job)</Text>
-              <Text style={styles.columnPrice}>${rate}</Text>
+              <Text style={styles.columnPrice}>
+                ${props.prices === 0 ? "-" : rate}
+              </Text>
               <Text style={styles.columnQty}>1</Text>
-              <Text style={styles.columnAmount}>${rate}</Text>
+              <Text style={styles.columnAmount}>
+                ${props.prices === 0 ? "-" : rate}
+              </Text>
             </View>
             {items.map((indice) => {
               return (
@@ -228,9 +232,13 @@ const Format = (props) => {
                   <Text style={styles.columnDescrip}>
                     {indice.descrip} ({indice.unit_measurement})
                   </Text>
-                  <Text style={styles.columnPrice}>${indice.price}</Text>
+                  <Text style={styles.columnPrice}>
+                    ${props.prices === 0 ? "-" : indice.price}
+                  </Text>
                   <Text style={styles.columnQty}>{indice.quantity}</Text>
-                  <Text style={styles.columnAmount}>${indice.subtotal}</Text>
+                  <Text style={styles.columnAmount}>
+                    ${props.prices === 0 ? "-" : indice.subtotal}
+                  </Text>
                 </View>
               );
             })}

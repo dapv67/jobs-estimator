@@ -9,28 +9,22 @@ import { Link } from "react-router-dom";
 import "../estimates/NewEstimate.css";
 import Swal from "sweetalert2";
 
-// const sgMail = require("@sendgrid/mail");
-// sgMail.setApiKey(
-//   "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"
-// );
-// Other option
-// sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
 function Invoice() {
   //useParams nos permite accerder desde un componente a los parametros de la ruta
   const { id } = useParams(); // Este se debe de llamar como lo llamamos en App.js (identificador dinamizado)
+  const [userAuth, setUserAuth] = useState(localStorage.getItem("ui"));
 
   //states para hacer cuentas
   const [subtotal, setSubtotal] = useState(0);
   const [calculatedDiscount, setCalculatedDiscount] = useState(0);
   const [totalBeforeTax, setTotalBeforeTax] = useState(0);
   const [calculatedTax, setCalculatedTax] = useState(0);
+  const [total, setTotal] = useState(0);
 
   //states de los inputs
   const [rate, setRate] = useState(0);
   const [taxes, setTaxes] = useState(0);
   const [discount, setDiscount] = useState(0);
-  const [total, setTotal] = useState(0);
 
   const [dueDate, setDueDate] = useState("");
   const [dateInvoice, setDateInvoice] = useState("");
@@ -64,7 +58,6 @@ function Invoice() {
         setEmailClient(data.email_client);
         setStatus(data.status);
         setItems(data.items);
-        setTotal(data.total);
       })
       .catch((error) => {
         console.log(error);
@@ -73,7 +66,7 @@ function Invoice() {
 
   //Get the items options
   useEffect(() => {
-    fetch("http://127.0.0.1:5005/api/items")
+    fetch(`http://127.0.0.1:5005/api/items/u/${userAuth}`)
       .then((response) => response.json())
       .then((data) => {
         setItemsOptions(data);
@@ -96,7 +89,6 @@ function Invoice() {
     };
     subtotalCalculate();
   }, [items]);
-
   useEffect(() => {
     console.log("Items: " + JSON.stringify(items, null, 4));
     const subtotalCalculate = () => {
@@ -109,6 +101,7 @@ function Invoice() {
     };
     subtotalCalculate();
   }, [rate]);
+
   useEffect(() => {
     console.log("Subtotal = " + subtotal);
   }, [subtotal]);
@@ -117,21 +110,16 @@ function Invoice() {
   useEffect(() => {
     let discountTotal = 0;
     discountTotal = (parseFloat(subtotal) * parseFloat(discount)) / 100;
-    console.log("Discount after calculate = " + discountTotal);
+    console.log("Descuento calculado = " + discountTotal);
     setCalculatedDiscount(discountTotal);
   }, [subtotal]);
+
   useEffect(() => {
     let discountTotal = 0;
     discountTotal = (parseFloat(subtotal) * parseFloat(discount)) / 100;
-    console.log("Discount after calculate = " + discountTotal);
+    console.log("Descuento calculado = " + discountTotal);
     setCalculatedDiscount(discountTotal);
   }, [discount]);
-  useEffect(() => {
-    let discountTotal = 0;
-    discountTotal = (parseFloat(subtotal) * parseFloat(discount)) / 100;
-    console.log("Discount after calculate = " + discountTotal);
-    setCalculatedDiscount(discountTotal);
-  }, [rate]);
 
   //Efecto para calular total antes de impuestos
   useEffect(() => {
@@ -140,12 +128,6 @@ function Invoice() {
     console.log("Total antes de impuestos = " + totalBeforeAux);
     setTotalBeforeTax(totalBeforeAux);
   }, [calculatedDiscount]);
-  useEffect(() => {
-    let totalBeforeAux = 0;
-    totalBeforeAux = parseFloat(subtotal) - parseFloat(calculatedDiscount);
-    console.log("Total antes de impuestos = " + totalBeforeAux);
-    setTotalBeforeTax(totalBeforeAux);
-  }, [rate]);
   useEffect(() => {
     let totalBeforeAux = 0;
     totalBeforeAux = parseFloat(subtotal) - parseFloat(calculatedDiscount);
@@ -165,7 +147,7 @@ function Invoice() {
     calculatedTaxAux = (parseFloat(totalBeforeTax) * parseFloat(taxes)) / 100;
     console.log("Impuesto calculado = " + calculatedTaxAux);
     setCalculatedTax(calculatedTaxAux);
-  }, [subtotal]);
+  }, [totalBeforeTax]);
 
   //Efecto para calcular el total
   useEffect(() => {
@@ -174,6 +156,7 @@ function Invoice() {
     console.log("Total = " + totalAux);
     setTotal(totalAux);
   }, [calculatedTax]);
+
   useEffect(() => {
     let totalAux = 0;
     totalAux = parseFloat(totalBeforeTax) + parseFloat(calculatedTax);
@@ -182,6 +165,45 @@ function Invoice() {
   }, [totalBeforeTax]);
 
   //Functions
+  const markPaid = async (e) => {
+    e.preventDefault();
+    let data = {
+      id: id,
+      dateInvoice: dateInvoice,
+      dueDate: dueDate,
+      status: "paid",
+      job: job,
+      rate: rate,
+      taxes: taxes,
+      calculatedTax: calculatedTax,
+      discount: discount,
+      calculatedDiscount: calculatedDiscount,
+      subtotal: subtotal,
+      total: total,
+      items: items,
+    };
+
+    fetch("http://127.0.0.1:5005/api/invoices", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    }).then((response) => {
+      if (response.status === 200) {
+        console.log("Success:", response);
+        Swal.fire("Confirmation!", "Invoice paid!", "success");
+        navigate(`/invoices/u/${userAuth}`);
+      } else {
+        console.error("Error:", response);
+        Swal.fire(
+          "Error 500!",
+          "Ups! Something happened on the server",
+          "error"
+        );
+      }
+    });
+  };
   const updateInvoice = async (e) => {
     e.preventDefault();
     let data = {
@@ -211,7 +233,7 @@ function Invoice() {
       if (response.status === 200) {
         console.log("Success:", response);
         Swal.fire("Confirmation!", "Invoice updated!", "success");
-        navigate("/invoices");
+        navigate(`/invoices/u/${userAuth}`);
       } else {
         console.error("Error:", response);
         Swal.fire(
@@ -247,7 +269,7 @@ function Invoice() {
           .then((response) => {
             console.log("Success:", response);
             Swal.fire("Confirmation!", "Invoice deleted!", "success");
-            navigate("/invoices");
+            navigate(`/invoices/u/${userAuth}`);
           })
           .catch((error) => {
             console.error("Error:", error);
@@ -303,7 +325,7 @@ function Invoice() {
       <Header />
       <div className="main">
         <div className="d-flex">
-          <Link className="link" to="/invoices">
+          <Link className="link" to={`/invoices/u/${userAuth}`}>
             <img src={back} alt="back-icon" className="me-5" />
           </Link>
           <h1 className="">{folio}</h1>
@@ -316,7 +338,9 @@ function Invoice() {
           >
             <div className="selector-rounded">Preview</div>
           </Link>
-          <div className="selector-rounded">Mark paid</div>
+          <div className="selector-rounded" onClick={markPaid}>
+            Mark paid
+          </div>
         </div>
         <Form className="mt-4">
           <Form.Group className="mb-3" controlId="">
@@ -485,9 +509,7 @@ function Invoice() {
             <h3>Total:</h3>
             <h3>${total}</h3>
           </div>
-          <Form.Group className="mb-5" controlId="formBasicCheckbox">
-            <Form.Check type="checkbox" label="Hide unit prices for customer" />
-          </Form.Group>
+          <div className="mb-5"></div>
 
           <div className="d-flex mb-3">
             <Link className="w-100" to="#" onClick={sendEmail}>

@@ -6,8 +6,10 @@ const Client = require("../models/Client.model");
 
 //Read
 // Cuando ingreses a esta ruta obtendra la funcion callback(funcion con 2 parametros que esta como 2do parametro), puedes retornar formatos json
-router.get("/", (req, res) => {
-  Client.find()
+router.get("/u/:user", (req, res) => {
+  const { user } = req.params;
+
+  Client.find({ user_auth: user })
     .then((allClients) => res.json(allClients))
     .catch((err) => {
       console.log(err);
@@ -28,6 +30,7 @@ router.get("/:client_id", (req, res) => {
 //Add
 router.post("/", (req, res) => {
   const data = {
+    user_auth: req.body.userAuth,
     name: req.body.name,
     email: req.body.email,
     phone: req.body.phone,
